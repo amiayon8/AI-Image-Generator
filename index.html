@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet" />
+        <title>AI Image Generator</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                font-family: "Open Sans", serif;
+            }
+      a{
+    text-decoration: none;
+    color: unset; 
+}
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background: #020305;
+                color: #f0f0f0;
+                display: flex;
+              justify-content: space-between;
+              height: 100vh;
+              flex-direction: column;
+            }
+            .container {
+                width: 90%;
+                max-width: 600px;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+                margin: 5%;
+            }
+            .input-group {
+                margin-bottom: 20px;
+            }
+
+            .input-group input {
+                width: 100%;
+                padding: 1rem 1rem;
+                border: none;
+                border-radius: 5px;
+                background: #0b0f18;
+                color: #555555;
+                resize: none;
+                border: none;
+                outline: 0;
+                transition: all 0.2s ease;
+            }
+
+            .input-group input:active {
+                color: #aaaaaa;
+            }
+
+            input:focus {
+                border: 1px solid rgb(243, 84, 106);
+                color: #aaaaaa;
+            }
+
+            .button {
+                background: rgb(243, 84, 106);
+                background: -moz-linear-gradient(135deg, rgba(243, 84, 106, 1) 0%, rgba(180, 75, 237, 1) 50%, rgba(84, 139, 253, 1) 100%);
+                background: -webkit-linear-gradient(135deg, rgba(243, 84, 106, 1) 0%, rgba(180, 75, 237, 1) 50%, rgba(84, 139, 253, 1) 100%);
+                background: linear-gradient(135deg, rgba(243, 84, 106, 1) 0%, rgba(180, 75, 237, 1) 50%, rgba(84, 139, 253, 1) 100%);
+                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#f3546a",endColorstr="#548bfd",GradientType=1);
+                color: #fff;
+                padding: 0.5rem;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 1rem;
+                width: 100%;
+                font-spacing: -1px;
+                font-weight: 550;
+                transition: all 0.5s ease;
+            }
+            .button:hover {
+                filter: brightness(0.9);
+            }
+            .preview {
+                margin-top: 20px;
+              aspect-ratio: 1 / 1; /* Ensures height matches width */
+              border-radius: 5px;
+              position: relative;
+              overflow: hidden;
+              display: none;
+            }
+      .preview .img-load{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+      
+            .preview img {
+                max-width: 100%;
+                border-radius: 5px;
+                border: 1px solid #444;
+              min-height: 99.99%;
+              max-height: 100%;
+              object-fit: cover;
+              }
+      
+      /* The loading Class */
+.loading {
+    position: relative;
+    background-color: #333333;
+}
+
+/* The moving element */
+.loading::after {
+    display: block;
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: translateX(-100%);
+    background: -webkit-gradient(linear, left top,
+            right top, from(transparent),
+            color-stop(rgba(0 0, 0, 0.2)),
+            to(transparent));
+
+    background: linear-gradient(90deg, transparent,
+            rgba(0, 0, 0, 0.2), transparent);
+
+    /* Adding animation */
+    animation: loading 0.8s infinite;
+}
+
+/* Loading Animation */
+@keyframes loading {
+    100% {
+        transform: translateX(100%);
+    }
+}
+      footer{
+        width: 100%;
+        background-color: #0b0f18;
+        color: #ffffff;
+        text-align: center;
+        padding: 1rem 0;
+      }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+          <h1>AI Image Generator</h1>
+            <div class="input-group">
+    <input id="prompt" placeholder="Type Your Prompt.." aria-label="Enter your AI image prompt" />
+    <small id="error-message" style="color: red; display: none;">Please enter a prompt.</small>
+</div>
+
+            <button class="button" id="generate-btn">Create</button>
+
+            <div class="preview" id="preview">
+
+            </div> </div>
+      <footer>Developed by <a href="https://thenicedev.xyz"><u>The Nice Developer</u></a></footer>
+        <script>
+            document.getElementById('generate-btn').addEventListener('click', function() {
+                var userPrompt = document.getElementById('prompt').value.trim();
+                var errorMessage = document.getElementById('error-message');
+                var preview = document.getElementById('preview');
+
+                if (!userPrompt) {
+                    errorMessage.style.display = "block";
+                    errorMessage.textContent = "Please enter a prompt.";
+                    return;
+                }
+
+                errorMessage.style.display = "none";
+                preview.innerHTML = '<div class="img-load loading"></div>';
+                preview.style.display = "block";
+
+                var apiUrl = 'https://pikaapis-img-gen.vercel.app/?prompt=' + encodeURIComponent(userPrompt);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', apiUrl, true);
+              xhr.withCredentials = true;
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            var imageUrl = data.image_url;
+
+                            if (imageUrl) {
+                                preview.innerHTML = '<img src="' + imageUrl + '" class="preview-img" alt="Generated Image">';
+                            } else {
+                                preview.innerHTML = 'No image URL found in response.';
+                            }
+                        } catch (error) {
+                            console.error('Error parsing response:', error);
+                            preview.innerHTML = 'Error parsing response.';
+                        }
+                    } else if (xhr.readyState === 4) {
+                        preview.innerHTML = 'Error fetching image. Please try again.';
+                    }
+                };
+                xhr.send();
+            });
+        </script>
+    </body>
+</html>
